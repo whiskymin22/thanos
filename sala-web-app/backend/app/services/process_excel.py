@@ -144,3 +144,49 @@ def process_financials(cl_df: pd.DataFrame) -> pd.DataFrame:
 
     return pd.DataFrame(financial_data).T.fillna(0)
 
+
+def generate_summary(
+    revenue_df: pd.DataFrame,
+    cogs_df: pd.DataFrame,
+    financials_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Generate a high level summary of the processed data.
+
+    The summary combines revenue, COGS and financial information to
+    provide totals per month as well as the resulting net profit.
+
+    Args:
+        revenue_df (pd.DataFrame): Revenue data with categories as index
+            and months as columns.
+        cogs_df (pd.DataFrame): COGS data with categories as index and
+            months as columns.
+        financials_df (pd.DataFrame): Financial income/expense with
+            categories as index and months as columns.
+
+    Returns:
+        pd.DataFrame: A dataframe containing monthly totals and the net
+            profit for each month.
+    """
+
+    # Totals for each month
+    total_revenue = revenue_df.sum(axis=0)
+    total_cogs = cogs_df.sum(axis=0)
+
+    # Financial income/expense are already totalled by month in
+    # ``financials_df``
+    financial_income = financials_df.loc["Total Financial Income"]
+    financial_expense = financials_df.loc["Total Financial Expense"]
+
+    # Net profit calculation
+    net_profit = total_revenue - total_cogs + financial_income - financial_expense
+
+    summary = pd.DataFrame({
+        "Total Revenue": total_revenue,
+        "Total COGS": total_cogs,
+        "Total Financial Income": financial_income,
+        "Total Financial Expense": financial_expense,
+        "Net Profit": net_profit,
+    }).T.fillna(0)
+
+    return summary
+
